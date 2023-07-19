@@ -7,7 +7,6 @@ namespace PFM.API.DbContexts
     {
         public DbSet<Transactions> Transactions { get; set; } = null!;
 
-       
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)

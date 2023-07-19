@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace PFM.API.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class DbContextInitial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -13,8 +13,7 @@ namespace PFM.API.Migrations
                 name: "Transactions",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id = table.Column<int>(type: "int", nullable: false),
                     BeneficairyName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Direction = table.Column<string>(type: "nvarchar(1)", nullable: false),

@@ -6,7 +6,7 @@ namespace PFM.API.Entities
     public class Transactions
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; }
         [Required]
         [MaxLength(100)]
@@ -21,7 +21,10 @@ namespace PFM.API.Entities
         public int Mcc { get; set; }
         public string Kind { get; set; }
 
-
+        public Transactions()
+        {
+            
+        }
 
         public Transactions(string beneficairyName) 
         {

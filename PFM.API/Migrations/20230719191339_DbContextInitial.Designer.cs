@@ -12,8 +12,8 @@ using PFM.API.DbContexts;
 namespace PFM.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230718192924_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20230719191339_DbContextInitial")]
+    partial class DbContextInitial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -27,10 +27,7 @@ namespace PFM.API.Migrations
             modelBuilder.Entity("PFM.API.Entities.Transactions", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<double>("Amount")
                         .HasColumnType("float");

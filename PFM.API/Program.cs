@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PFM.API.DbContexts;
+using PFM.API.Interfaces;
 using PFM.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,8 +12,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-options.UseSqlServer(builder.Configuration["ConnectionStrings:ConnectionString"]));
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration["ConnectionStrings:ConnectionString"]));
 
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -34,7 +34,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseEndpoints(endpoints =>
-endpoints.MapControllers());
+app.UseEndpoints(endpoints => endpoints.MapControllers());
 
 app.Run();

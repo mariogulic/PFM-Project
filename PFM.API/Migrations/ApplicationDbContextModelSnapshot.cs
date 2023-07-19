@@ -25,10 +25,7 @@ namespace PFM.API.Migrations
             modelBuilder.Entity("PFM.API.Entities.Transactions", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<double>("Amount")
                         .HasColumnType("float");
