@@ -13,12 +13,12 @@ namespace PFM.API.Entities
         public string BeneficairyName { get; set; } = string.Empty;
         public DateTime Date { get; set; }
 
-        public char Direction { get; set; }
+        public string Direction { get; set; }
         public double Amount { get; set; }
         [MaxLength(200)]
         public string Description { get; set; } = string.Empty;
         public string Currency { get; set; }
-        public int Mcc { get; set; }
+        public string Mcc { get; set; }
         public string Kind { get; set; }
 
         public Transactions()

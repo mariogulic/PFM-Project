@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PFM.API.Entities;
 using PFM.API.Interfaces;
 using PFM.API.Models;
-using PFM.API.Services;
+using System.Globalization;
 using System.Text.Json;
 using System.Transactions;
 
@@ -23,40 +23,21 @@ namespace PFM.API.Controllers
 
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
-
+        
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TransactionsDto>>> GetTransactions(int pageNumber = 1, int pageSize = 10)
+        public async Task<ActionResult<IEnumerable<TransactionsDto>>> GetTransactions(DateTime? startDate, DateTime? endDate, string? kind ,int pageNumber = 1, int pageSize = 10)
         {
 
             if (pageSize > maxTransactionsPageSize)
             {
                 pageNumber = maxTransactionsPageSize;
             }
-            var (transactions, paginationMetaData) = await _transactionRepository.GetAllTransactionsAsync(pageNumber, pageSize);
+            var (transactions, paginationMetaData) = await _transactionRepository.GetAllTransactionsAsync(startDate, endDate, kind, pageNumber, pageSize);
 
             Response.Headers.Add("Pagination",
                 JsonSerializer.Serialize(paginationMetaData));
 
             return Ok(_mapper.Map<IEnumerable<TransactionsDto>>(transactions));
-        }
-
-        [HttpGet("transactionsbydate")]
-        public async Task<ActionResult<IEnumerable<TransactionsDto>>> GetTransactionsByDate(DateTime startDate, DateTime endDate)
-        {
-            var transactionsByDate = await _transactionRepository.GetTransactionsByDateAsync(startDate, endDate);
-
-            return Ok(_mapper.Map<IEnumerable<TransactionsDto>>(transactionsByDate));
-        }
-
-        [HttpGet("kind")]
-        public async Task<IActionResult> GetTransactionsByKind(string? kind)
-        {
-            var filtered = await _transactionRepository.GetTransactionsByKindAsync(kind);
-            if (kind == null)
-            {
-                return Ok(_transactionRepository.GetAllTransactionsAsync(1, 10));
-            }
-            return Ok(filtered);
         }
 
         [HttpPost("import")]
@@ -81,6 +62,13 @@ namespace PFM.API.Controllers
                     var transactionsParts = transactionString.Split(",").ToList();
 
                     var id = int.Parse(transactionsParts[0]);
+
+                    NumberFormatInfo provider = new NumberFormatInfo();
+                    provider.NumberDecimalSeparator = ".";
+                    provider.NumberGroupSeparator = ",";
+                    double amount = Convert.ToDouble(transactionsParts[4]);
+
+
                     var existingTransaction = await _transactionRepository.GetTransactionById(id);
                     if (existingTransaction == null)
                     {
@@ -88,13 +76,13 @@ namespace PFM.API.Controllers
                         {
                             Id = id,
                             BeneficairyName = transactionsParts[1],
-                            Currency = "",
-                            Amount = 0,
-                            Date = DateTime.Now,
-                            Description = "",
-                            Direction = 'a',
-                            Kind = "",
-                            Mcc = 1
+                            Date = DateTime.Parse(transactionsParts[2]),
+                            Direction = transactionsParts[3],
+                            Amount =amount,
+                            Description = transactionsParts[5],
+                            Currency = transactionsParts[6],
+                            Mcc =transactionsParts[7],
+                            Kind = transactionsParts[8]
                         };
 
                         await _transactionRepository.AddTransaction(transactionForDatase);

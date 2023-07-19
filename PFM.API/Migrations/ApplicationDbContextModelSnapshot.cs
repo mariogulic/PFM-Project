@@ -49,14 +49,15 @@ namespace PFM.API.Migrations
 
                     b.Property<string>("Direction")
                         .IsRequired()
-                        .HasColumnType("nvarchar(1)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Mcc")
-                        .HasColumnType("int");
+                    b.Property<string>("Mcc")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

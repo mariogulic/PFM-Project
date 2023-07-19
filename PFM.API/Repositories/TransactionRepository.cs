@@ -5,22 +5,32 @@ using PFM.API.Interfaces;
 using PFM.API.Models;
 using PFM.API.Repositories;
 
-namespace PFM.API.Services
+namespace PFM.API.TransactionRepository
 {
     public class TransactionRepository : ITransactionRepository
     {
         private readonly ApplicationDbContext _context;
-
         public TransactionRepository(ApplicationDbContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
 
         }
-
-        async Task<(IEnumerable<Transactions>, PaginationMetadata)> ITransactionRepository.GetAllTransactionsAsync(int pageNumber, int pageSize)
+        public async Task<(IEnumerable<Transactions>, PaginationMetadata)> GetAllTransactionsAsync(DateTime? startDate, DateTime? endDate, string? kind, int pageNumber, int pageSize)
         {
+            var collection = _context.Transactions as IQueryable<Transactions>;
 
-            var totalItemsCount = await _context.Transactions.CountAsync();
+            if(!string.IsNullOrWhiteSpace(kind))
+            {
+                kind = kind.Trim();
+                collection = collection.Where(c =>  c.Kind == kind);
+            }
+            if(startDate != null || endDate != null)
+            {
+               collection = (IQueryable<Transactions>)collection.Where(t => t.Date >= startDate && t.Date < endDate)
+                .OrderBy(t => t.Id)
+                .ToListAsync();
+            }
+            var totalItemsCount = await  collection.CountAsync();
 
             var paginationMetData = new PaginationMetadata(totalItemsCount, pageSize, pageNumber);
 
@@ -30,26 +40,6 @@ namespace PFM.API.Services
                 .ToListAsync();
 
             return (collectionToReturn, paginationMetData);
-        }
-
-        public async Task<IEnumerable<Transactions>> GetTransactionsByDateAsync(DateTime startDate, DateTime endDate)
-        {
-            return await _context.Transactions.Where(t => t.Date >= startDate && t.Date < endDate)
-                .OrderBy(t => t.Id)
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<Transactions>> GetTransactionsByKindAsync(string? kind)
-        {
-
-            if (string.IsNullOrEmpty(kind))
-            {
-
-                return await _context.Transactions.ToListAsync();
-            }
-
-
-            return await _context.Transactions.Where(t => t.Kind == kind).ToListAsync();
         }
 
         public async Task AddTransaction(Transactions transactionForDatase)
@@ -62,5 +52,7 @@ namespace PFM.API.Services
         {
             return await _context.Transactions.FirstOrDefaultAsync(x => x.Id == id);
         }
+        
     }
 }
+

@@ -12,8 +12,8 @@ using PFM.API.DbContexts;
 namespace PFM.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230719191339_DbContextInitial")]
-    partial class DbContextInitial
+    [Migration("20230719225303_initialDb")]
+    partial class initialDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -51,14 +51,15 @@ namespace PFM.API.Migrations
 
                     b.Property<string>("Direction")
                         .IsRequired()
-                        .HasColumnType("nvarchar(1)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Mcc")
-                        .HasColumnType("int");
+                    b.Property<string>("Mcc")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

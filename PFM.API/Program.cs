@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PFM.API.DbContexts;
 using PFM.API.Interfaces;
-using PFM.API.Services;
+using PFM.API.TransactionRepository;
 
 var builder = WebApplication.CreateBuilder(args);
 
