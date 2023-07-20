@@ -83,12 +83,7 @@ namespace PFM.API.Controllers
                 }
             }
             await _transactionRepository.AddTransactions(transactions);
-
             return Ok();
         }
-
-      
-
     }
 }
-

@@ -12,7 +12,6 @@ namespace PFM.API.Entities
         [MaxLength(100)]
         public string BeneficairyName { get; set; } = string.Empty;
         public DateTime Date { get; set; }
-
         public string Direction { get; set; } = string.Empty;
         public double Amount { get; set; }
         [MaxLength(200)]
@@ -20,20 +19,16 @@ namespace PFM.API.Entities
         public string Currency { get; set; } = string.Empty;
         public string Mcc { get; set; } = string.Empty;
         public string Kind { get; set; } = string.Empty;
-        [ForeignKey("Category")]
-        public string CatCode { get; set; } = string.Empty;
-
+        public Categories? Category { get; set; }
+        public string? CategoryId { get; set; } 
 
         public Transactions()
         {
             
         }
-
         public Transactions(string beneficairyName) 
         {
             BeneficairyName = beneficairyName;
         }
-
-        public Categories Category { get; set; }
     }
 }

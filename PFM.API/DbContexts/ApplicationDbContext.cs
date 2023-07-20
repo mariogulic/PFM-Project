@@ -21,7 +21,7 @@ namespace PFM.API.DbContexts
             modelBuilder.Entity<Transactions>()
                 .HasOne(t => t.Category)
                 .WithMany()
-                .HasForeignKey(t => t.CatCode)
+                .HasForeignKey(t => t.CategoryId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
         }

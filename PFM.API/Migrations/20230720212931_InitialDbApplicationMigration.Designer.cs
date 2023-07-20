@@ -12,8 +12,8 @@ using PFM.API.DbContexts;
 namespace PFM.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230720200750_InitialDbMigration")]
-    partial class InitialDbMigration
+    [Migration("20230720212931_InitialDbApplicationMigration")]
+    partial class InitialDbApplicationMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -55,7 +55,7 @@ namespace PFM.API.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("CatCode")
+                    b.Property<string>("CategoryId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Currency")
@@ -84,7 +84,7 @@ namespace PFM.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CatCode");
+                    b.HasIndex("CategoryId");
 
                     b.ToTable("Transactions");
                 });
@@ -93,7 +93,7 @@ namespace PFM.API.Migrations
                 {
                     b.HasOne("PFM.API.Entities.Categories", "Category")
                         .WithMany()
-                        .HasForeignKey("CatCode")
+                        .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Category");

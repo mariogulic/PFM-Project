@@ -7,7 +7,7 @@ namespace PFM.API.Models
         [Name("id")]
         public int Id { get; set; }
 
-        [Name("beneficiary-name")]        
+        [Name("beneficiary-name")]
         public string BeneficairyName { get; set; } = string.Empty;
 
         [Name("date")]
@@ -26,7 +26,7 @@ namespace PFM.API.Models
         public string Currency { get; set; } = string.Empty;
 
         [Name("mcc")]
-        public string Mcc { get; set; }= string.Empty;
+        public string Mcc { get; set; } = string.Empty;
 
         [Name("kind")]
         public string Kind { get; set; } = string.Empty;
