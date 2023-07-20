@@ -8,5 +8,7 @@ namespace PFM.API.Interfaces
         Task<(IEnumerable<Transactions> , PaginationMetadata)> GetAllTransactionsAsync(DateTime? startDate, DateTime? endDate, string? kind,int pageNumber , int pageSize);
         Task AddTransaction(Transactions transactionForDatase);
         Task<Transactions> GetTransactionById(int id);
+        Task AddTransactions(List<Transactions> transactions);
+      
     }
 }

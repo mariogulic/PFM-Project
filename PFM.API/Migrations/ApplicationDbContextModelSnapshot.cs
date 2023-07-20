@@ -22,6 +22,24 @@ namespace PFM.API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
+            modelBuilder.Entity("PFM.API.Entities.Categories", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ParentCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("Categories");
+                });
+
             modelBuilder.Entity("PFM.API.Entities.Transactions", b =>
                 {
                     b.Property<int>("Id")
@@ -34,6 +52,9 @@ namespace PFM.API.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CatCode")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Currency")
                         .IsRequired()
@@ -61,7 +82,19 @@ namespace PFM.API.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CatCode");
+
                     b.ToTable("Transactions");
+                });
+
+            modelBuilder.Entity("PFM.API.Entities.Transactions", b =>
+                {
+                    b.HasOne("PFM.API.Entities.Categories", "Category")
+                        .WithMany()
+                        .HasForeignKey("CatCode")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Category");
                 });
 #pragma warning restore 612, 618
         }

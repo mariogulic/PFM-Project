@@ -7,6 +7,7 @@ namespace PFM.API.Profiles
         public TransactionProfiles()
         {
             CreateMap<Entities.Transactions , Models.TransactionsDto>();
+            CreateMap<Entities.Categories, Models.CategoryDto>();
         }
     }
 }

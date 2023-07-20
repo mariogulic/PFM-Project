@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
+using CsvHelper;
 using Microsoft.AspNetCore.Mvc;
 using PFM.API.Entities;
 using PFM.API.Interfaces;
 using PFM.API.Models;
 using System.Globalization;
 using System.Text.Json;
-using System.Transactions;
+
 
 namespace PFM.API.Controllers
 {
@@ -23,79 +24,71 @@ namespace PFM.API.Controllers
 
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
-        
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TransactionsDto>>> GetTransactions(DateTime? startDate, DateTime? endDate, string? kind ,int pageNumber = 1, int pageSize = 10)
+        public async Task<ActionResult<IEnumerable<TransactionsDto>>> GetTransactions(DateTime? startDate, DateTime? endDate, string? kind, int pageNumber = 1, int pageSize = 10)
         {
 
             if (pageSize > maxTransactionsPageSize)
             {
-                pageNumber = maxTransactionsPageSize;
+                pageSize = maxTransactionsPageSize;
             }
-            var (transactions, paginationMetaData) = await _transactionRepository.GetAllTransactionsAsync(startDate, endDate, kind, pageNumber, pageSize);
 
-            Response.Headers.Add("Pagination",
-                JsonSerializer.Serialize(paginationMetaData));
+            try
+            {
+                var (transactions, paginationMetaData) = await _transactionRepository.GetAllTransactionsAsync(startDate, endDate, kind, pageNumber, pageSize);
 
-            return Ok(_mapper.Map<IEnumerable<TransactionsDto>>(transactions));
+                Response.Headers.Add("Pagination",
+                    JsonSerializer.Serialize(paginationMetaData));
+
+                return Ok(_mapper.Map<IEnumerable<TransactionsDto>>(transactions));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        [HttpPost("import")]
+        [HttpPost("importtransactions")]
         public async Task<IActionResult> ImportFile(IFormFile file)
         {
             if (file == null || file.Length == 0)
             {
-                return BadRequest("Please enter valid File");
+                return BadRequest("The File is not valid");
             }
 
-            using (var reader = new StreamReader(file.OpenReadStream()))
+            using var reader = new StreamReader(file.OpenReadStream());
+            using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+            var records = csv.GetRecords<TransactionsDto>().ToList();
+
+            var transactions = new List<Transactions>();
+            foreach (var record in records)
             {
-                var csvString = await reader.ReadToEndAsync();
-                var parts = csvString.Split("\n").ToList();
-                parts = parts.Skip(1).ToList();
-
-                foreach (var transactionString in parts)
+                var existingTransaction = await _transactionRepository.GetTransactionById(record.Id);
+                if (existingTransaction == null)
                 {
-                    if (string.IsNullOrEmpty(transactionString))
-                        continue;
-
-                    var transactionsParts = transactionString.Split(",").ToList();
-
-                    var id = int.Parse(transactionsParts[0]);
-
-                    NumberFormatInfo provider = new NumberFormatInfo();
-                    provider.NumberDecimalSeparator = ".";
-                    provider.NumberGroupSeparator = ",";
-                    double amount = Convert.ToDouble(transactionsParts[4]);
-
-
-                    var existingTransaction = await _transactionRepository.GetTransactionById(id);
-                    if (existingTransaction == null)
+                    var transactionForDatase = new Transactions
                     {
-                        var transactionForDatase = new Transactions
-                        {
-                            Id = id,
-                            BeneficairyName = transactionsParts[1],
-                            Date = DateTime.Parse(transactionsParts[2]),
-                            Direction = transactionsParts[3],
-                            Amount =amount,
-                            Description = transactionsParts[5],
-                            Currency = transactionsParts[6],
-                            Mcc =transactionsParts[7],
-                            Kind = transactionsParts[8]
-                        };
-
-                        await _transactionRepository.AddTransaction(transactionForDatase);
-                    }
-
+                        Id = record.Id,
+                        BeneficairyName = record.BeneficairyName,
+                        Date = record.Date,
+                        Direction = record.Direction,
+                        Amount = record.Amount,
+                        Description = record.Description,
+                        Currency = record.Currency,
+                        Mcc = record.Mcc,
+                        Kind = record.Kind
+                    };
+                    transactions.Add(transactionForDatase);
                 }
-
             }
-
+            await _transactionRepository.AddTransactions(transactions);
 
             return Ok();
-
         }
+
+      
+
     }
 }
 

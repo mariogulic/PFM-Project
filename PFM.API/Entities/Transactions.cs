@@ -13,13 +13,16 @@ namespace PFM.API.Entities
         public string BeneficairyName { get; set; } = string.Empty;
         public DateTime Date { get; set; }
 
-        public string Direction { get; set; }
+        public string Direction { get; set; } = string.Empty;
         public double Amount { get; set; }
         [MaxLength(200)]
         public string Description { get; set; } = string.Empty;
-        public string Currency { get; set; }
-        public string Mcc { get; set; }
-        public string Kind { get; set; }
+        public string Currency { get; set; } = string.Empty;
+        public string Mcc { get; set; } = string.Empty;
+        public string Kind { get; set; } = string.Empty;
+        [ForeignKey("Category")]
+        public string CatCode { get; set; } = string.Empty;
+
 
         public Transactions()
         {
@@ -30,5 +33,7 @@ namespace PFM.API.Entities
         {
             BeneficairyName = beneficairyName;
         }
+
+        public Categories Category { get; set; }
     }
 }
