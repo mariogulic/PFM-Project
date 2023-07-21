@@ -23,6 +23,7 @@ namespace PFM.API.Repositories
         {
             return await _context.Categories.FirstOrDefaultAsync(x => x.Code == code);
         }
+        
         public async Task AddCategories(List<Categories> categories)
         {
             await _context.Categories.AddRangeAsync(categories);

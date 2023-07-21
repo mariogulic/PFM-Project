@@ -52,7 +52,7 @@ namespace PFM.API.Controllers
                 }
             }
             await _categoryRepository.AddCategories(categories);
-            return Ok();
+            return Ok("Import successfully uploaded");
         }
     }
 }

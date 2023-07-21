@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PFM.API.Entities
@@ -20,8 +21,7 @@ namespace PFM.API.Entities
         public string Mcc { get; set; } = string.Empty;
         public string Kind { get; set; } = string.Empty;
         public Categories? Category { get; set; }
-        public string? CategoryId { get; set; } 
-
+        public string? CatCode { get; set; }
         public Transactions()
         {
             

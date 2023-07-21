@@ -11,6 +11,8 @@ namespace PFM.API.Entities
         [ForeignKey("Parent")]
         public string ParentCode { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
+
+ 
         public Categories()
         {
             

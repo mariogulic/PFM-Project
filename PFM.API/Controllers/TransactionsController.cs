@@ -16,19 +16,20 @@ namespace PFM.API.Controllers
     {
         private readonly ITransactionRepository _transactionRepository;
         private readonly IMapper _mapper;
+        private readonly ICategoryRepository _categoryRepository;
         const int maxTransactionsPageSize = 20;
 
-        public TransactionsController(ITransactionRepository transactionRepository, IMapper mapper)
+        public TransactionsController(ITransactionRepository transactionRepository, IMapper mapper, ICategoryRepository categoryRepository)
         {
             _transactionRepository = transactionRepository ?? throw new ArgumentNullException(nameof(transactionRepository));
-
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _categoryRepository = categoryRepository ?? throw new ArgumentNullException(nameof(categoryRepository));
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TransactionsDto>>> GetTransactions(DateTime? startDate, DateTime? endDate, string? kind, int pageNumber = 1, int pageSize = 10)
+        public async Task<ActionResult<IEnumerable<PagedResponseModel<TransactionsDto>>>> GetTransactions(DateTime? startDate, DateTime? endDate, string? kind, string? sortBy, string? orderBy,
+                                                                                      int pageNumber = 1, int pageSize = 10)
         {
-
             if (pageSize > maxTransactionsPageSize)
             {
                 pageSize = maxTransactionsPageSize;
@@ -36,12 +37,20 @@ namespace PFM.API.Controllers
 
             try
             {
-                var (transactions, paginationMetaData) = await _transactionRepository.GetAllTransactionsAsync(startDate, endDate, kind, pageNumber, pageSize);
+                var (transactions, paginationMetaData) = await _transactionRepository.GetAllTransactionsAsync(startDate, endDate, kind, sortBy, orderBy, pageNumber, pageSize);
+
+                var pagedResponse = new PagedResponseModel<TransactionsDto>
+                {
+                    Page = pageNumber,
+                    PageSize = pageSize,
+                    TotalCount = paginationMetaData.TotalItemCount,
+                    Items = _mapper.Map<IEnumerable<TransactionsDto>>(transactions)
+                };
 
                 Response.Headers.Add("Pagination",
                     JsonSerializer.Serialize(paginationMetaData));
+                return Ok(pagedResponse);
 
-                return Ok(_mapper.Map<IEnumerable<TransactionsDto>>(transactions));
             }
             catch (Exception ex)
             {
@@ -54,7 +63,7 @@ namespace PFM.API.Controllers
         {
             if (file == null || file.Length == 0)
             {
-                return BadRequest("The File is not valid");
+                return BadRequest("File is not ok");
             }
 
             using var reader = new StreamReader(file.OpenReadStream());
@@ -83,7 +92,35 @@ namespace PFM.API.Controllers
                 }
             }
             await _transactionRepository.AddTransactions(transactions);
-            return Ok();
+            return Ok("Import successfully uploaded");
+        }
+
+
+        [HttpPost("{id}/categorize")]
+        public async Task<IActionResult> CategorizeTransaction(int id, CategorizeTransactionDto categorizeTransactionDto)
+        {
+            var transaction = await _transactionRepository.GetTransactionById(id);
+
+            if (transaction == null)
+            {
+                return NotFound("Transaction not found.");
+            }
+
+            var category = await _categoryRepository.GetCategoryBycode(categorizeTransactionDto.CatCode);
+
+            if (category == null)
+            {
+                return NotFound("Category not found.");
+            }
+
+            transaction.CatCode = category.Code;
+            transaction.Category = category;
+
+            await _transactionRepository.Update(transaction);
+
+            return Ok("Transaction successfully categorized.");
         }
     }
 }
+
+

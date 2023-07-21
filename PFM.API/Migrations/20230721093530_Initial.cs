@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace PFM.API.Migrations
 {
-    public partial class InitialDbApplicationMigration : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -35,23 +35,23 @@ namespace PFM.API.Migrations
                     Currency = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Mcc = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Kind = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CategoryId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    CatCode = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Transactions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Transactions_Categories_CategoryId",
-                        column: x => x.CategoryId,
+                        name: "FK_Transactions_Categories_CatCode",
+                        column: x => x.CatCode,
                         principalTable: "Categories",
                         principalColumn: "Code",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Transactions_CategoryId",
+                name: "IX_Transactions_CatCode",
                 table: "Transactions",
-                column: "CategoryId");
+                column: "CatCode");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

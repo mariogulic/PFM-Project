@@ -1,10 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using PFM.API.DbContexts;
 using PFM.API.Entities;
 using PFM.API.Interfaces;
 using PFM.API.Repositories;
-
-
 
 namespace PFM.API.TransactionRepository
 {
@@ -17,42 +16,65 @@ namespace PFM.API.TransactionRepository
 
         }
 
-        public async Task<(IEnumerable<Transactions>, PaginationMetadata)> GetAllTransactionsAsync(DateTime? startDate, DateTime? endDate, string? kind, int pageNumber, int pageSize)
+        public async Task<(IEnumerable<Transactions>, PaginationMetadata)> GetAllTransactionsAsync(DateTime? startDate, DateTime? endDate, string? kind, string? sortBy, string? orderBy ,int pageNumber, int pageSize)
         {
+
+
             var collection = _context.Transactions as IQueryable<Transactions>;
 
             if (!string.IsNullOrWhiteSpace(kind))
             {
                 var validKinds = new List<string> { "dep", "fee", "pmt", "sal", "wdw" };
 
-                if (validKinds.Contains(kind.ToLower()))
+                if (!validKinds.Contains(kind.ToLower()))
                 {
-                    collection = collection.Where(c => c.Kind == kind);
+                    throw new ArgumentException($"Please choose form the given kinds");
                 }
+                collection = collection.Where(c => c.Kind == kind);
             }
 
 
-            if (startDate.HasValue || endDate.HasValue)
+
+            if (startDate.HasValue && endDate.HasValue)
             {
-                if (startDate.HasValue && endDate.HasValue)
+                collection = collection.Where(t => t.Date >= startDate && t.Date < endDate);
+            }
+            else if (startDate.HasValue)
+            {
+                collection = collection.Where(t => t.Date >= startDate);
+            }
+            else if (endDate.HasValue)
+            {
+                collection = collection.Where(t => t.Date < endDate);
+            }
+            if (!string.IsNullOrWhiteSpace(sortBy))
+            {
+                switch (sortBy.ToLower())
                 {
-                    collection = collection.Where(t => t.Date >= startDate && t.Date < endDate);
+                    case "id":
+                        collection = orderBy.ToLower() == "desc" ? collection.OrderByDescending(t => t.Id) : collection.OrderBy(t => t.Id);
+                        break;
+                    case "beneficiaryname":
+                        collection = orderBy.ToLower() == "desc" ? collection.OrderByDescending(t => t.BeneficairyName) : collection.OrderBy(t => t.BeneficairyName);
+                        break;
+                    case "date":
+                        collection = orderBy.ToLower() == "desc" ? collection.OrderByDescending(t => t.Date) : collection.OrderBy(t => t.Date);
+                        break;
+                    default:
+                        collection = collection.OrderBy(t => t.Date);
+                        break;
                 }
-                else if (startDate.HasValue)
-                {
-                    collection = collection.Where(t => t.Date >= startDate);
-                }
-                else if (endDate.HasValue)
-                {
-                    collection = collection.Where(t => t.Date < endDate);
-                }
+            }
+            else
+            {
+                collection =collection.OrderBy(t => t.Date);
             }
 
             var totalItemsCount = await collection.CountAsync();
             var paginationMetData = new PaginationMetadata(totalItemsCount, pageSize, pageNumber);
 
             var collectionToReturn = await collection
-                .OrderBy(t => t.Id)
+             //   .OrderBy(t => t.Id)
                 .Skip(pageSize * (pageNumber - 1))
                 .Take(pageSize)
                 .ToListAsync();
@@ -76,6 +98,11 @@ namespace PFM.API.TransactionRepository
             await _context.SaveChangesAsync();
         }
 
+        public async Task Update(Transactions transaction)
+        {
+            _context.Transactions.Update(transaction);
+            await _context.SaveChangesAsync();
+        }
     }
 }
 
