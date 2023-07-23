@@ -41,15 +41,21 @@ namespace PFM.API.Controllers
                 var existingCategory = await _categoryRepository.GetCategoryBycode(record.Code);
                 if (existingCategory == null)
                 {
-                    var categoryForDatase = new Categories
+                    var categoryForDatabase = new Categories
                     {
                         Code = record.Code,
                         ParentCode = record.ParentCode,
                         Name = record.Name
 
                     };
-                    categories.Add(categoryForDatase);
+                    categories.Add(categoryForDatabase);
                 }
+                else
+                {
+                    existingCategory.Name = record.Name;
+                    await _categoryRepository.UpdateCategory(existingCategory);
+                }
+              
             }
             await _categoryRepository.AddCategories(categories);
             return Ok("Import successfully uploaded");

@@ -2,6 +2,7 @@
 using PFM.API.DbContexts;
 using PFM.API.Entities;
 using PFM.API.Interfaces;
+using PFM.API.TransactionRepository;
 
 namespace PFM.API.Repositories
 {
@@ -30,6 +31,10 @@ namespace PFM.API.Repositories
             await _context.SaveChangesAsync();
         }
 
-
+        public async Task UpdateCategory(Categories existingCategory)
+        {
+            _context.Categories.Update(existingCategory);
+            await _context.SaveChangesAsync();
+        }
     }
 }

@@ -41,8 +41,8 @@ namespace PFM.API.Controllers
 
                 var pagedResponse = new PagedResponseModel<TransactionsDto>
                 {
-                    Page = pageNumber,
                     PageSize = pageSize,
+                    Page = pageNumber,
                     TotalCount = paginationMetaData.TotalItemCount,
                     Items = _mapper.Map<IEnumerable<TransactionsDto>>(transactions)
                 };
@@ -63,7 +63,7 @@ namespace PFM.API.Controllers
         {
             if (file == null || file.Length == 0)
             {
-                return BadRequest("File is not ok");
+                return BadRequest("File is not valid");
             }
 
             using var reader = new StreamReader(file.OpenReadStream());

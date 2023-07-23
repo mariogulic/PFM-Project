@@ -11,5 +11,6 @@ namespace PFM.API.Interfaces
         Task<Transactions> GetTransactionById(int id);
         Task AddTransactions(List<Transactions> transactions);
         Task Update(Transactions transaction);
+        Task<List<SpendingAnalyticItem>> GetSpendingAnalytics(string catcode);
     }
 }

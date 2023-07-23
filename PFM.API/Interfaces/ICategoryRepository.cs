@@ -7,5 +7,6 @@ namespace PFM.API.Interfaces
         Task AddCategory(Categories categoryForDatabase);
         Task<Categories> GetCategoryBycode(string code);
         Task AddCategories(List<Categories> categories);
+        Task UpdateCategory(Categories existingCategory);
     }
 }

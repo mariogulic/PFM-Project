@@ -8,8 +8,9 @@ namespace PFM.API.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public string Code { get; set; } = string.Empty;
-        [ForeignKey("Parent")]
+
         public string ParentCode { get; set; } = string.Empty;
+
         public string Name { get; set; } = string.Empty;
 
  
