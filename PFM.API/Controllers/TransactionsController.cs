@@ -49,6 +49,7 @@ namespace PFM.API.Controllers
 
             var (transactions, paginationMetaData) = await _transactionRepository.GetAllTransactionsAsync(startDate, endDate, kinds, sortBy, orderBy, pageNumber, pageSize);
 
+
             var pagedResponse = new PagedResponseModel<TransactionsDto>
             {
                 PageSize = pageSize,
@@ -139,6 +140,62 @@ namespace PFM.API.Controllers
             await _transactionRepository.Update(transaction);
 
             return Ok("Transaction successfully categorized.");
+        }
+
+
+        [HttpPost("{id}/split")]
+        public async Task<IActionResult> SplitTransaction(int id, SplitTransactionDto splitTransactionDto)
+        {
+            var transaction = await _transactionRepository.GetTransactionById(id);
+
+            if (transaction == null)
+            {
+                return StatusCode(404, new
+                {
+                    Description = "Error while getting transaction",
+                    Message = "Transaction does not exist",
+                    StatusCode = 404
+                });
+            }
+
+            var totalAmount = splitTransactionDto.Splits.Sum(x => x.Amount);
+            if(totalAmount != transaction.Amount)
+            {
+                return StatusCode(400, new
+                {
+                    Description = "Total amount error",
+                    Message = $"Total amount of splits is not equal to total amount of transaction which is {transaction.Amount}",
+                    StatusCode = 404
+                });
+            }
+            
+            transaction.SplitTransactions.Clear();
+            foreach(var splitTransactionItem in splitTransactionDto.Splits)
+            {
+                var category = await _categoryRepository.GetCategoryBycode(splitTransactionItem.CatCode);
+                if (category == null)
+                {
+                    return StatusCode(404, new
+                    {
+                        Description = "Error while getting category",
+                        Message = $"Category {splitTransactionItem.CatCode} does not exist",
+                        StatusCode = 404
+                    });
+                }
+               
+                var splitTransaction = new SplitTransaction
+                {
+                    Amount = splitTransactionItem.Amount,
+                    CatCode = category.Code,
+                    TransactionId = transaction.Id
+                };
+
+                transaction.SplitTransactions.Add(splitTransaction);
+            }
+
+            await _transactionRepository.Update(transaction);
+
+            return Ok("Transaction successfully splitted.");
         }
     }
 }

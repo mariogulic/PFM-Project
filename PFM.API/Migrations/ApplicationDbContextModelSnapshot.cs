@@ -40,6 +40,33 @@ namespace PFM.API.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("PFM.API.Entities.SplitTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<double>("Amount")
+                        .HasColumnType("float");
+
+                    b.Property<string>("CatCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("TransactionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CatCode");
+
+                    b.HasIndex("TransactionId");
+
+                    b.ToTable("SplitTransactions");
+                });
+
             modelBuilder.Entity("PFM.API.Entities.Transactions", b =>
                 {
                     b.Property<int>("Id")
@@ -87,6 +114,25 @@ namespace PFM.API.Migrations
                     b.ToTable("Transactions");
                 });
 
+            modelBuilder.Entity("PFM.API.Entities.SplitTransaction", b =>
+                {
+                    b.HasOne("PFM.API.Entities.Categories", "Category")
+                        .WithMany()
+                        .HasForeignKey("CatCode")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PFM.API.Entities.Transactions", "Transaction")
+                        .WithMany("SplitTransactions")
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Transaction");
+                });
+
             modelBuilder.Entity("PFM.API.Entities.Transactions", b =>
                 {
                     b.HasOne("PFM.API.Entities.Categories", "Category")
@@ -95,6 +141,11 @@ namespace PFM.API.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("PFM.API.Entities.Transactions", b =>
+                {
+                    b.Navigation("SplitTransactions");
                 });
 #pragma warning restore 612, 618
         }

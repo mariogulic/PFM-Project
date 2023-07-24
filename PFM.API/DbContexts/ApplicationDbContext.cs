@@ -13,6 +13,9 @@ namespace PFM.API.DbContexts
         public DbSet<Transactions> Transactions { get; set; } = null!;
         public DbSet< Categories>  Categories { get; set; } = null!;
 
+        public DbSet<SplitTransaction> SplitTransactions { get; set; } = null!;
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

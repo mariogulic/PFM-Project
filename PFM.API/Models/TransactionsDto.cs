@@ -30,5 +30,7 @@ namespace PFM.API.Models
 
         [Name("kind")]
         public string Kind { get; set; } = string.Empty;
+
+        public List<SplitTransactionItemDto> SplitTransactions { get; set; } = new List<SplitTransactionItemDto>();
     }
 }

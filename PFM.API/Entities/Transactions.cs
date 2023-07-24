@@ -20,15 +20,20 @@ namespace PFM.API.Entities
         public string Currency { get; set; } = string.Empty;
         public string Mcc { get; set; } = string.Empty;
         public string Kind { get; set; } = string.Empty;
+
         public Categories? Category { get; set; }
         public string? CatCode { get; set; }
+
+        public ICollection<SplitTransaction> SplitTransactions { get; set; }
+
         public Transactions()
         {
-            
+            SplitTransactions = new List<SplitTransaction>();
         }
-        public Transactions(string beneficairyName) 
+        public Transactions(string beneficairyName)
         {
             BeneficairyName = beneficairyName;
+            SplitTransactions = new List<SplitTransaction>();
         }
     }
 }

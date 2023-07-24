@@ -21,7 +21,7 @@ namespace PFM.API.TransactionRepository
         public async Task<(IEnumerable<Transactions>, PaginationMetadata)> GetAllTransactionsAsync(DateTime? startDate, DateTime? endDate, string? kinds, string? sortBy, OrderBy? orderBy, int pageNumber, int pageSize)
         {
 
-            var collection = _context.Transactions as IQueryable<Transactions>;
+            var collection = _context.Transactions.Include(x => x.SplitTransactions) as IQueryable<Transactions>;
 
             if (!string.IsNullOrWhiteSpace(kinds))
             {
@@ -87,7 +87,10 @@ namespace PFM.API.TransactionRepository
 
         public async Task<Transactions> GetTransactionById(int id)
         {
-            return await _context.Transactions.FirstOrDefaultAsync(x => x.Id == id);
+            return await _context.Transactions
+                .Include(x => x.SplitTransactions)
+                    .ThenInclude(x => x.Category)
+                .FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task AddTransactions(List<Transactions> transactions)
@@ -149,11 +152,6 @@ namespace PFM.API.TransactionRepository
         public async Task<bool> CheckCatcodeExistsAsync(string catcode)
         {
             return await _context.Categories.AnyAsync(c => c.Code == catcode);
-        }
-
-        public Task<(IEnumerable<Transactions>, PaginationMetadata)> GetAllTransactionsAsync(DateTime? startDate, DateTime? endDate, string? kinds, string? sortBy, OrderBy orderBy, int pageNumber, int pageSize)
-        {
-            throw new NotImplementedException();
         }
     }
 }

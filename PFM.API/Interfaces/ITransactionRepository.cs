@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using PFM.API.Entities;
 using PFM.API.Models;
 using PFM.API.Repositories;
@@ -14,5 +15,6 @@ namespace PFM.API.Interfaces
         Task Update(Transactions transaction);
         Task<List<SpendingAnalyticItem>> GetSpendingAnalytics(string catcode, DateTime? startDate, DateTime? endDate, DirectionEnum? direction);
         Task<bool> CheckCatcodeExistsAsync(string catcode);
+
     }
 }

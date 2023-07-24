@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace PFM.API.Migrations
 {
-    public partial class Initial : Migration
+    public partial class InitialCreation : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -48,6 +48,43 @@ namespace PFM.API.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "SplitTransactions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Amount = table.Column<double>(type: "float", nullable: false),
+                    CatCode = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    TransactionId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SplitTransactions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SplitTransactions_Categories_CatCode",
+                        column: x => x.CatCode,
+                        principalTable: "Categories",
+                        principalColumn: "Code",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SplitTransactions_Transactions_TransactionId",
+                        column: x => x.TransactionId,
+                        principalTable: "Transactions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SplitTransactions_CatCode",
+                table: "SplitTransactions",
+                column: "CatCode");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SplitTransactions_TransactionId",
+                table: "SplitTransactions",
+                column: "TransactionId");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Transactions_CatCode",
                 table: "Transactions",
@@ -56,6 +93,9 @@ namespace PFM.API.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "SplitTransactions");
+
             migrationBuilder.DropTable(
                 name: "Transactions");
 
