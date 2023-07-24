@@ -10,9 +10,8 @@ namespace PFM.API.DbContexts
         {
 
         }
-        public DbSet<Transactions> Transactions { get; set; } = null!;
-        public DbSet< Categories>  Categories { get; set; } = null!;
-
+        public DbSet<Transaction> Transactions { get; set; } = null!;
+        public DbSet<Category> Categories { get; set; } = null!;
         public DbSet<SplitTransaction> SplitTransactions { get; set; } = null!;
 
 
@@ -21,7 +20,7 @@ namespace PFM.API.DbContexts
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Transactions>()
+            modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.Category)
                 .WithMany()
                 .HasForeignKey(t => t.CatCode)

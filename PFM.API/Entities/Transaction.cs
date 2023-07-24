@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PFM.API.Entities
 {
-    public class Transactions
+    public class Transaction
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -21,16 +21,16 @@ namespace PFM.API.Entities
         public string Mcc { get; set; } = string.Empty;
         public string Kind { get; set; } = string.Empty;
 
-        public Categories? Category { get; set; }
+        public Category? Category { get; set; }
         public string? CatCode { get; set; }
 
         public ICollection<SplitTransaction> SplitTransactions { get; set; }
 
-        public Transactions()
+        public Transaction()
         {
             SplitTransactions = new List<SplitTransaction>();
         }
-        public Transactions(string beneficairyName)
+        public Transaction(string beneficairyName)
         {
             BeneficairyName = beneficairyName;
             SplitTransactions = new List<SplitTransaction>();

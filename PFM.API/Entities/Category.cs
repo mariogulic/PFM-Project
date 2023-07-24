@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PFM.API.Entities
 {
-    public class Categories
+    public class Category
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -14,7 +14,7 @@ namespace PFM.API.Entities
         public string Name { get; set; } = string.Empty;
 
  
-        public Categories()
+        public Category()
         {
             
         }

@@ -8,7 +8,6 @@ using PFM.API.Utilities;
 using System.Globalization;
 using System.Text.Json;
 
-
 namespace PFM.API.Controllers
 {
     [ApiController]
@@ -28,7 +27,7 @@ namespace PFM.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PagedResponseModel<TransactionsDto>>>> GetTransactions(DateTime? startDate, DateTime? endDate, string? kinds, string? sortBy, OrderBy? orderBy,
+        public async Task<ActionResult<IEnumerable<PagedResponseModel<TransactionDto>>>> GetTransactions(DateTime? startDate, DateTime? endDate, string? kinds, string? sortBy, OrderByEnum? orderBy,
                                                                                       int pageNumber = 1, int pageSize = 10)
         {
             if (pageSize > maxTransactionsPageSize)
@@ -50,12 +49,12 @@ namespace PFM.API.Controllers
             var (transactions, paginationMetaData) = await _transactionRepository.GetAllTransactionsAsync(startDate, endDate, kinds, sortBy, orderBy, pageNumber, pageSize);
 
 
-            var pagedResponse = new PagedResponseModel<TransactionsDto>
+            var pagedResponse = new PagedResponseModel<TransactionDto>
             {
                 PageSize = pageSize,
                 Page = pageNumber,
                 TotalCount = paginationMetaData.TotalItemCount,
-                Items = _mapper.Map<IEnumerable<TransactionsDto>>(transactions)
+                Items = _mapper.Map<IEnumerable<TransactionDto>>(transactions)
             };
 
             Response.Headers.Add("Pagination",
@@ -63,7 +62,7 @@ namespace PFM.API.Controllers
             return Ok(pagedResponse);
         }
 
-        [HttpPost("importtransactions")]
+        [HttpPost("import")]
         public async Task<IActionResult> ImportFile(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -79,15 +78,15 @@ namespace PFM.API.Controllers
 
             using var reader = new StreamReader(file.OpenReadStream());
             using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
-            var records = csv.GetRecords<TransactionsDto>().ToList();
+            var records = csv.GetRecords<TransactionDto>().ToList();
 
-            var transactions = new List<Transactions>();
+            var transactions = new List<Transaction>();
             foreach (var record in records)
             {
                 var existingTransaction = await _transactionRepository.GetTransactionById(record.Id);
                 if (existingTransaction == null)
                 {
-                    var transactionForDatase = new Transactions
+                    var transactionForDatase = new Transaction
                     {
                         Id = record.Id,
                         BeneficairyName = record.BeneficairyName,

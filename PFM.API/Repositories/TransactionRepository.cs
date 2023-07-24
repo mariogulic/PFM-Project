@@ -18,10 +18,10 @@ namespace PFM.API.TransactionRepository
 
         }
 
-        public async Task<(IEnumerable<Transactions>, PaginationMetadata)> GetAllTransactionsAsync(DateTime? startDate, DateTime? endDate, string? kinds, string? sortBy, OrderBy? orderBy, int pageNumber, int pageSize)
+        public async Task<(IEnumerable<Transaction>, PaginationMetadata)> GetAllTransactionsAsync(DateTime? startDate, DateTime? endDate, string? kinds, string? sortBy, OrderByEnum? orderBy, int pageNumber, int pageSize)
         {
 
-            var collection = _context.Transactions.Include(x => x.SplitTransactions) as IQueryable<Transactions>;
+            var collection = _context.Transactions.Include(x => x.SplitTransactions) as IQueryable<Transaction>;
 
             if (!string.IsNullOrWhiteSpace(kinds))
             {
@@ -49,16 +49,16 @@ namespace PFM.API.TransactionRepository
                 switch (sortBy.ToLower())
                 {
                     case "id":
-                        collection = orderBy == OrderBy.Desc ? collection.OrderByDescending(t => t.Id) : collection.OrderBy(t => t.Id);
+                        collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.Id) : collection.OrderBy(t => t.Id);
                         break;
                     case "beneficiaryname":
-                        collection = orderBy == OrderBy.Desc ? collection.OrderByDescending(t => t.BeneficairyName) : collection.OrderBy(t => t.BeneficairyName);
+                        collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.BeneficairyName) : collection.OrderBy(t => t.BeneficairyName);
                         break;
                     case "date":
-                        collection = orderBy == OrderBy.Desc ? collection.OrderByDescending(t => t.Date) : collection.OrderBy(t => t.Date);
+                        collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.Date) : collection.OrderBy(t => t.Date);
                         break;
                     case "amount":
-                        collection = orderBy == OrderBy.Desc ? collection.OrderByDescending(t => t.Amount) : collection.OrderBy(t => t.Amount);
+                        collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.Amount) : collection.OrderBy(t => t.Amount);
                         break;
                     default:
                         throw new ArgumentException($"Please choose from the given cases");
@@ -79,13 +79,13 @@ namespace PFM.API.TransactionRepository
 
             return (collectionToReturn, paginationMetData);
         }
-        public async Task AddTransaction(Transactions transactionForDatase)
+        public async Task AddTransaction(Transaction transactionForDatase)
         {
             _context.Add(transactionForDatase);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Transactions> GetTransactionById(int id)
+        public async Task<Transaction> GetTransactionById(int id)
         {
             return await _context.Transactions
                 .Include(x => x.SplitTransactions)
@@ -93,13 +93,13 @@ namespace PFM.API.TransactionRepository
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public async Task AddTransactions(List<Transactions> transactions)
+        public async Task AddTransactions(List<Transaction> transactions)
         {
             await _context.Transactions.AddRangeAsync(transactions);
             await _context.SaveChangesAsync();
         }
 
-        public async Task Update(Transactions transaction)
+        public async Task Update(Transaction transaction)
         {
             _context.Transactions.Update(transaction);
             await _context.SaveChangesAsync();

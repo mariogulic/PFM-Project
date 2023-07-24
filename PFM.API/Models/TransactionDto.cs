@@ -2,7 +2,7 @@
 
 namespace PFM.API.Models
 {
-    public class TransactionsDto
+    public class TransactionDto
     {
         [Name("id")]
         public int Id { get; set; }

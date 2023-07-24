@@ -13,10 +13,10 @@ namespace PFM.API.Entities
 
         [ForeignKey("Category")]
         public string CatCode { get; set; }
-        public Categories Category { get; set; }
+        public Category Category { get; set; }
 
         [ForeignKey("Transaction")]
         public int TransactionId { get; set; }
-        public Transactions Transaction { get; set; }
+        public Transaction Transaction { get; set; }
     }
 }

@@ -4,9 +4,11 @@ namespace PFM.API.Interfaces
 {
     public interface ICategoryRepository
     {
-        Task AddCategory(Categories categoryForDatabase);
-        Task<Categories> GetCategoryBycode(string code);
-        Task AddCategories(List<Categories> categories);
-        Task UpdateCategory(Categories existingCategory);
+        Task AddCategory(Category categoryForDatabase);
+        Task<Category> GetCategoryBycode(string code);
+        Task AddCategories(List<Category> categories);
+        Task UpdateCategory(Category existingCategory);
+        Task<IEnumerable<Category>> GetAll(string parentId);
+
     }
 }

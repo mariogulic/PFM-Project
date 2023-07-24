@@ -6,8 +6,8 @@ namespace PFM.API.Profiles
     {
         public TransactionProfiles()
         {
-            CreateMap<Entities.Transactions , Models.TransactionsDto>();
-            CreateMap<Entities.Categories, Models.CategoryDto>();
+            CreateMap<Entities.Transaction , Models.TransactionDto>();
+            CreateMap<Entities.Category, Models.CategoryDto>();
             CreateMap<Entities.SpendingAnalyticItem, Models.SpendingAnalyticItemsDto>();
             CreateMap<Entities.SplitTransaction, Models.SplitTransactionItemDto>();
         }

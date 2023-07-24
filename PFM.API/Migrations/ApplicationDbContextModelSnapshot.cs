@@ -22,7 +22,7 @@ namespace PFM.API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("PFM.API.Entities.Categories", b =>
+            modelBuilder.Entity("PFM.API.Entities.Category", b =>
                 {
                     b.Property<string>("Code")
                         .HasColumnType("nvarchar(450)");
@@ -67,7 +67,7 @@ namespace PFM.API.Migrations
                     b.ToTable("SplitTransactions");
                 });
 
-            modelBuilder.Entity("PFM.API.Entities.Transactions", b =>
+            modelBuilder.Entity("PFM.API.Entities.Transaction", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("int");
@@ -116,13 +116,13 @@ namespace PFM.API.Migrations
 
             modelBuilder.Entity("PFM.API.Entities.SplitTransaction", b =>
                 {
-                    b.HasOne("PFM.API.Entities.Categories", "Category")
+                    b.HasOne("PFM.API.Entities.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CatCode")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PFM.API.Entities.Transactions", "Transaction")
+                    b.HasOne("PFM.API.Entities.Transaction", "Transaction")
                         .WithMany("SplitTransactions")
                         .HasForeignKey("TransactionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -133,9 +133,9 @@ namespace PFM.API.Migrations
                     b.Navigation("Transaction");
                 });
 
-            modelBuilder.Entity("PFM.API.Entities.Transactions", b =>
+            modelBuilder.Entity("PFM.API.Entities.Transaction", b =>
                 {
-                    b.HasOne("PFM.API.Entities.Categories", "Category")
+                    b.HasOne("PFM.API.Entities.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CatCode")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -143,7 +143,7 @@ namespace PFM.API.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("PFM.API.Entities.Transactions", b =>
+            modelBuilder.Entity("PFM.API.Entities.Transaction", b =>
                 {
                     b.Navigation("SplitTransactions");
                 });

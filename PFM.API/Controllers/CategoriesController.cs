@@ -15,7 +15,7 @@ namespace PFM.API.Controllers
     {
         private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
- 
+
         public CategoriesController(ICategoryRepository categoryRepository, IMapper mapper)
         {
             _categoryRepository = categoryRepository ?? throw new ArgumentNullException(nameof(categoryRepository));
@@ -23,9 +23,17 @@ namespace PFM.API.Controllers
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAll([FromQuery(Name = "parent-id")] string? parentId)
+        {
+            var categories = await _categoryRepository.GetAll(parentId);
 
-        [HttpPost("importcategories")]
-        public async Task<IActionResult> ImportFileCategory(IFormFile file)
+            return Ok(categories);
+        }
+
+
+        [HttpPost("import")]
+        public async Task<ActionResult> ImportFileCategory(IFormFile file)
         {
             if (file == null || file.Length == 0)
             {
@@ -40,13 +48,13 @@ namespace PFM.API.Controllers
             using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
             var records = csv.GetRecords<CategoryDto>().ToList();
 
-            var categories = new List<Categories>();
+            var categories = new List<Category>();
             foreach (var record in records)
             {
                 var existingCategory = await _categoryRepository.GetCategoryBycode(record.Code);
                 if (existingCategory == null)
                 {
-                    var categoryForDatabase = new Categories
+                    var categoryForDatabase = new Category
                     {
                         Code = record.Code,
                         ParentCode = record.ParentCode,
@@ -60,7 +68,7 @@ namespace PFM.API.Controllers
                     existingCategory.Name = record.Name;
                     await _categoryRepository.UpdateCategory(existingCategory);
                 }
-              
+
             }
             await _categoryRepository.AddCategories(categories);
             return Ok("Import successfully uploaded");
