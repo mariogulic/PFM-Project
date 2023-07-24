@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PFM.API.Interfaces;
 using PFM.API.Models;
+using PFM.API.Repositories;
 
 namespace PFM.API.Controllers
 {
@@ -16,14 +17,31 @@ namespace PFM.API.Controllers
 
         public SpendingAnalyticsController(ITransactionRepository transactionRepository, IMapper mapper)
         {
-            _transactionRepository = transactionRepository;
-            _mapper = mapper;
+            _transactionRepository = transactionRepository ?? throw new ArgumentNullException(nameof(transactionRepository));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         [HttpGet]
-        public async Task<ActionResult<SpendingAnalyticsDto>> GetSpendingAnalytics(string? catcode)
+        public async Task<ActionResult<SpendingAnalyticsDto>> GetSpendingAnalytics(string? catcode, DateTime? startDate, DateTime? endDate, DirectionEnum? direction)
         {
-            var spendingAnalyticItems = await _transactionRepository.GetSpendingAnalytics(catcode);
+
+
+            if (!string.IsNullOrEmpty(catcode))
+            {
+                bool catcodeExists = await _transactionRepository.CheckCatcodeExistsAsync(catcode);
+                if (!catcodeExists)
+                {
+                    return StatusCode(404, new
+                    {
+                        Description = "Error while getting CatCode",
+                        Message = "Invalid catcode. The specified catcode does not exist.",
+                        StatusCode = 404
+                    });
+                }
+            }
+
+
+            var spendingAnalyticItems = await _transactionRepository.GetSpendingAnalytics(catcode, endDate, startDate, direction);
 
             var response = new SpendingAnalyticsDto
             {

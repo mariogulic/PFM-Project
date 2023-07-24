@@ -29,7 +29,12 @@ namespace PFM.API.Controllers
         {
             if (file == null || file.Length == 0)
             {
-                return BadRequest("The File is not valid");
+                return StatusCode(400, new
+                {
+                    Desctription = "Error while uploading file",
+                    Message = "Please enter valid file",
+                    StatusCode = 400,
+                });
             }
             using var reader = new StreamReader(file.OpenReadStream());
             using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);

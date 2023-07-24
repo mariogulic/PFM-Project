@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using PFM.API.DbContexts;
 using PFM.API.Entities;
 using PFM.API.Interfaces;
+using PFM.API.Models;
 using PFM.API.Repositories;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
+using PFM.API.Utilities;
 
 namespace PFM.API.TransactionRepository
 {
@@ -18,23 +18,16 @@ namespace PFM.API.TransactionRepository
 
         }
 
-        public async Task<(IEnumerable<Transactions>, PaginationMetadata)> GetAllTransactionsAsync(DateTime? startDate, DateTime? endDate, string? kind, string? sortBy, string? orderBy, int pageNumber, int pageSize)
+        public async Task<(IEnumerable<Transactions>, PaginationMetadata)> GetAllTransactionsAsync(DateTime? startDate, DateTime? endDate, string? kinds, string? sortBy, OrderBy? orderBy, int pageNumber, int pageSize)
         {
-
 
             var collection = _context.Transactions as IQueryable<Transactions>;
 
-            if (!string.IsNullOrWhiteSpace(kind))
+            if (!string.IsNullOrWhiteSpace(kinds))
             {
-                var validKinds = new List<string> { "dep", "fee", "pmt", "sal", "wdw" };
-
-                if (!validKinds.Contains(kind.ToLower()))
-                {
-                    throw new ArgumentException($"Please choose form the given kinds");
-                }
-                collection = collection.Where(c => c.Kind == kind);
+                var inputKinds = kinds?.Split(',').Select(k => k.Trim().ToLower()) ?? new List<string>();
+                collection = collection.Where(c => inputKinds.Contains(c.Kind.ToLower()));
             }
-
 
 
             if (startDate.HasValue && endDate.HasValue)
@@ -49,24 +42,26 @@ namespace PFM.API.TransactionRepository
             {
                 collection = collection.Where(t => t.Date < endDate);
             }
+
+
             if (!string.IsNullOrWhiteSpace(sortBy))
             {
                 switch (sortBy.ToLower())
                 {
                     case "id":
-                        collection = orderBy.ToLower() == "desc" ? collection.OrderByDescending(t => t.Id) : collection.OrderBy(t => t.Id);
+                        collection = orderBy == OrderBy.Desc ? collection.OrderByDescending(t => t.Id) : collection.OrderBy(t => t.Id);
                         break;
                     case "beneficiaryname":
-                        collection = orderBy.ToLower() == "desc" ? collection.OrderByDescending(t => t.BeneficairyName) : collection.OrderBy(t => t.BeneficairyName);
+                        collection = orderBy == OrderBy.Desc ? collection.OrderByDescending(t => t.BeneficairyName) : collection.OrderBy(t => t.BeneficairyName);
                         break;
                     case "date":
-                        collection = orderBy.ToLower() == "desc" ? collection.OrderByDescending(t => t.Date) : collection.OrderBy(t => t.Date);
+                        collection = orderBy == OrderBy.Desc ? collection.OrderByDescending(t => t.Date) : collection.OrderBy(t => t.Date);
                         break;
                     case "amount":
-                        collection = orderBy.ToLower() == "desc" ? collection.OrderByDescending(t => t.Amount) : collection.OrderBy(t => t.Amount);
+                        collection = orderBy == OrderBy.Desc ? collection.OrderByDescending(t => t.Amount) : collection.OrderBy(t => t.Amount);
                         break;
                     default:
-                        throw new ArgumentException($"Please choose form the given cases");
+                        throw new ArgumentException($"Please choose from the given cases");
                 }
             }
             else
@@ -107,14 +102,35 @@ namespace PFM.API.TransactionRepository
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<SpendingAnalyticItem>> GetSpendingAnalytics(string catcode)
+        public async Task<List<SpendingAnalyticItem>> GetSpendingAnalytics(string catcode, DateTime? endDate, DateTime? startDate, DirectionEnum? direction)
         {
+            var collection = _context.Transactions.AsQueryable();
 
-            var collection = _context.Transactions as IQueryable<Transactions>;
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                collection = collection.Where(t => t.Date >= startDate.Value && t.Date < endDate.Value);
+            }
+            else if (startDate.HasValue)
+            {
+                collection = collection.Where(t => t.Date >= startDate.Value);
+            }
+            else if (endDate.HasValue)
+            {
+                collection = collection.Where(t => t.Date < endDate.Value);
+            }
 
             if (!string.IsNullOrEmpty(catcode))
             {
                 collection = collection.Where(x => x.Category.Code == catcode || x.Category.ParentCode == catcode);
+            }
+
+            if (direction == DirectionEnum.D)
+            {
+                collection = collection.Where(x => x.Direction == "d");
+            }
+            else if (direction == DirectionEnum.C)
+            {
+                collection = collection.Where(x => x.Direction == "c");
             }
 
             var groupedTransactions = await collection
@@ -128,6 +144,16 @@ namespace PFM.API.TransactionRepository
                 .ToListAsync();
 
             return groupedTransactions;
+        }
+
+        public async Task<bool> CheckCatcodeExistsAsync(string catcode)
+        {
+            return await _context.Categories.AnyAsync(c => c.Code == catcode);
+        }
+
+        public Task<(IEnumerable<Transactions>, PaginationMetadata)> GetAllTransactionsAsync(DateTime? startDate, DateTime? endDate, string? kinds, string? sortBy, OrderBy orderBy, int pageNumber, int pageSize)
+        {
+            throw new NotImplementedException();
         }
     }
 }

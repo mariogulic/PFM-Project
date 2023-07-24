@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PFM.API.Entities;
 using PFM.API.Interfaces;
 using PFM.API.Models;
+using PFM.API.Utilities;
 using System.Globalization;
 using System.Text.Json;
 
@@ -27,7 +28,7 @@ namespace PFM.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PagedResponseModel<TransactionsDto>>>> GetTransactions(DateTime? startDate, DateTime? endDate, string? kind, string? sortBy, string? orderBy,
+        public async Task<ActionResult<IEnumerable<PagedResponseModel<TransactionsDto>>>> GetTransactions(DateTime? startDate, DateTime? endDate, string? kinds, string? sortBy, OrderBy? orderBy,
                                                                                       int pageNumber = 1, int pageSize = 10)
         {
             if (pageSize > maxTransactionsPageSize)
@@ -35,27 +36,30 @@ namespace PFM.API.Controllers
                 pageSize = maxTransactionsPageSize;
             }
 
-            try
+            var allKindsAreValid = Helper.ValidateKinds(kinds);
+            if(allKindsAreValid == false)
             {
-                var (transactions, paginationMetaData) = await _transactionRepository.GetAllTransactionsAsync(startDate, endDate, kind, sortBy, orderBy, pageNumber, pageSize);
-
-                var pagedResponse = new PagedResponseModel<TransactionsDto>
+                return NotFound(new
                 {
-                    PageSize = pageSize,
-                    Page = pageNumber,
-                    TotalCount = paginationMetaData.TotalItemCount,
-                    Items = _mapper.Map<IEnumerable<TransactionsDto>>(transactions)
-                };
-
-                Response.Headers.Add("Pagination",
-                    JsonSerializer.Serialize(paginationMetaData));
-                return Ok(pagedResponse);
-
+                    Description = "Invalid kinds",
+                    Message = "Please choose from the given kinds: 'dep', 'fee', 'pmt', 'sal', 'wdw'.",
+                    StatusCode = 404
+                });
             }
-            catch (Exception ex)
+
+            var (transactions, paginationMetaData) = await _transactionRepository.GetAllTransactionsAsync(startDate, endDate, kinds, sortBy, orderBy, pageNumber, pageSize);
+
+            var pagedResponse = new PagedResponseModel<TransactionsDto>
             {
-                return BadRequest(ex.Message);
-            }
+                PageSize = pageSize,
+                Page = pageNumber,
+                TotalCount = paginationMetaData.TotalItemCount,
+                Items = _mapper.Map<IEnumerable<TransactionsDto>>(transactions)
+            };
+
+            Response.Headers.Add("Pagination",
+                JsonSerializer.Serialize(paginationMetaData));
+            return Ok(pagedResponse);
         }
 
         [HttpPost("importtransactions")]
@@ -63,7 +67,13 @@ namespace PFM.API.Controllers
         {
             if (file == null || file.Length == 0)
             {
-                return BadRequest("File is not valid");
+                return StatusCode(400, new
+                {
+                    Desctription = "Error while uploading file",
+                    Message = "Please enter valid file",
+                    StatusCode = 400,
+                });
+
             }
 
             using var reader = new StreamReader(file.OpenReadStream());
@@ -103,14 +113,24 @@ namespace PFM.API.Controllers
 
             if (transaction == null)
             {
-                return NotFound("Transaction not found.");
+                return StatusCode(400, new
+                {
+                    Description = "Error while getting transaction",
+                    Message = "Transaction does not exist",
+                    StatusCode = 400
+                });
             }
 
             var category = await _categoryRepository.GetCategoryBycode(categorizeTransactionDto.CatCode);
 
             if (category == null)
             {
-                return NotFound("Category not found.");
+                return StatusCode(400, new
+                {
+                    Description = "Error while getting category",
+                    Message = "Category does not exist",
+                    StatusCode = 400
+                });
             }
 
             transaction.CatCode = category.Code;
