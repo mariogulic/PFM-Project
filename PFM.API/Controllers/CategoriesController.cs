@@ -71,7 +71,10 @@ namespace PFM.API.Controllers
 
             }
             await _categoryRepository.AddCategories(categories);
-            return Ok("Import successfully uploaded");
+            return Ok(new
+            {
+                Message = "Import successfully uploaded"
+            });
         }
     }
 }

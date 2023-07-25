@@ -5,7 +5,6 @@ using PFM.API.Entities;
 using PFM.API.Interfaces;
 using PFM.API.Models;
 using PFM.API.Repositories;
-using PFM.API.Utilities;
 
 namespace PFM.API.TransactionRepository
 {
@@ -18,10 +17,14 @@ namespace PFM.API.TransactionRepository
 
         }
 
-        public async Task<(IEnumerable<Transaction>, PaginationMetadata)> GetAllTransactionsAsync(DateTime? startDate, DateTime? endDate, string? kinds, string? sortBy, OrderByEnum? orderBy, int pageNumber, int pageSize)
+        public async Task<(IEnumerable<Transaction>, PaginationMetadata)> GetAllTransactionsAsync(DateTime? startDate, DateTime? endDate,
+            string? kinds, SortByEnum? sortBy,
+            OrderByEnum? orderBy, int pageNumber,
+            int pageSize, double? fromAmount, double? toAmount)
         {
 
             var collection = _context.Transactions.Include(x => x.SplitTransactions) as IQueryable<Transaction>;
+
 
             if (!string.IsNullOrWhiteSpace(kinds))
             {
@@ -44,30 +47,52 @@ namespace PFM.API.TransactionRepository
             }
 
 
-            if (!string.IsNullOrWhiteSpace(sortBy))
+
+            switch (sortBy)
             {
-                switch (sortBy.ToLower())
-                {
-                    case "id":
-                        collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.Id) : collection.OrderBy(t => t.Id);
-                        break;
-                    case "beneficiaryname":
-                        collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.BeneficairyName) : collection.OrderBy(t => t.BeneficairyName);
-                        break;
-                    case "date":
-                        collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.Date) : collection.OrderBy(t => t.Date);
-                        break;
-                    case "amount":
-                        collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.Amount) : collection.OrderBy(t => t.Amount);
-                        break;
-                    default:
-                        throw new ArgumentException($"Please choose from the given cases");
-                }
+                case SortByEnum.BeneficairyName:
+                    collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.BeneficairyName) : collection.OrderBy(t => t.BeneficairyName);
+                    break;
+                case SortByEnum.Date:
+                    collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.Date) : collection.OrderBy(t => t.Date);
+                    break;
+                case SortByEnum.Direction:
+                    collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.Direction) : collection.OrderBy(t => t.Direction);
+                    break;
+                case SortByEnum.Amount:
+                    collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.Amount) : collection.OrderBy(t => t.Amount);
+                    break;
+                case SortByEnum.Description:
+                    collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.Description) : collection.OrderBy(t => t.Description);
+                    break;
+                case SortByEnum.Currency:
+                    collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.Currency) : collection.OrderBy(t => t.Currency);
+                    break;
+                case SortByEnum.Mcc:
+                    collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.Mcc) : collection.OrderBy(t => t.Mcc);
+                    break;
+                case SortByEnum.Kind:
+                    collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.Kind) : collection.OrderBy(t => t.Kind);
+                    break;
+                case SortByEnum.catCode:
+                    collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.CatCode) : collection.OrderBy(t => t.CatCode);
+                    break;
             }
-            else
+
+
+            if (fromAmount.HasValue && toAmount.HasValue)
             {
-                collection = collection.OrderBy(t => t.Date);
+                collection = collection.Where(t => t.Amount >= fromAmount && t.Amount < toAmount);
             }
+            else if (fromAmount.HasValue)
+            {
+                collection = collection.Where(t => t.Amount >= fromAmount);
+            }
+            else if (toAmount.HasValue)
+            {
+                collection = collection.Where(t => t.Amount < toAmount);
+            }
+          
 
             var totalItemsCount = await collection.CountAsync();
             var paginationMetData = new PaginationMetadata(totalItemsCount, pageSize, pageNumber);
@@ -152,6 +177,14 @@ namespace PFM.API.TransactionRepository
         public async Task<bool> CheckCatcodeExistsAsync(string catcode)
         {
             return await _context.Categories.AnyAsync(c => c.Code == catcode);
+        }
+
+        public async Task<int> AutoCategorize(AutoCategorizeRule rule)
+        {
+            var rowsModified = await _context.Database.ExecuteSqlRawAsync(@$"UPDATE Transactions 
+                                                                    SET CatCode = '{rule.CatCode}' 
+                                                                    WHERE CatCode is NULL AND {rule.Predicate}");
+            return rowsModified;
         }
     }
 }

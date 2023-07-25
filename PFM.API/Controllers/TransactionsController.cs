@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using CsvHelper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using PFM.API.Entities;
 using PFM.API.Interfaces;
 using PFM.API.Models;
 using PFM.API.Utilities;
+using System.Data;
 using System.Globalization;
 using System.Text.Json;
 
@@ -17,17 +19,21 @@ namespace PFM.API.Controllers
         private readonly ITransactionRepository _transactionRepository;
         private readonly IMapper _mapper;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IConfiguration _configuration;
         const int maxTransactionsPageSize = 20;
 
-        public TransactionsController(ITransactionRepository transactionRepository, IMapper mapper, ICategoryRepository categoryRepository)
+        public TransactionsController(ITransactionRepository transactionRepository, IMapper mapper, ICategoryRepository categoryRepository, IConfiguration configuration)
         {
             _transactionRepository = transactionRepository ?? throw new ArgumentNullException(nameof(transactionRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _categoryRepository = categoryRepository ?? throw new ArgumentNullException(nameof(categoryRepository));
+            _configuration = configuration;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PagedResponseModel<TransactionDto>>>> GetTransactions(DateTime? startDate, DateTime? endDate, string? kinds, string? sortBy, OrderByEnum? orderBy,
+        public async Task<ActionResult<IEnumerable<PagedResponseModel<TransactionDto>>>> GetTransactions(DateTime? startDate, DateTime? endDate,
+                                                                                       string? kinds, SortByEnum? sortBy, OrderByEnum? orderBy,
+                                                                                       double? fromAmount, double? toAmount,
                                                                                       int pageNumber = 1, int pageSize = 10)
         {
             if (pageSize > maxTransactionsPageSize)
@@ -36,7 +42,7 @@ namespace PFM.API.Controllers
             }
 
             var allKindsAreValid = Helper.ValidateKinds(kinds);
-            if(allKindsAreValid == false)
+            if (allKindsAreValid == false)
             {
                 return NotFound(new
                 {
@@ -46,7 +52,16 @@ namespace PFM.API.Controllers
                 });
             }
 
-            var (transactions, paginationMetaData) = await _transactionRepository.GetAllTransactionsAsync(startDate, endDate, kinds, sortBy, orderBy, pageNumber, pageSize);
+            if (fromAmount <= 0)
+            {
+                return BadRequest(new
+                {
+                    Desription = "You can't use negative numbers, please enter valid number"
+
+                });
+            }
+
+            var (transactions, paginationMetaData) = await _transactionRepository.GetAllTransactionsAsync(startDate, endDate, kinds, sortBy, orderBy, pageNumber, pageSize, fromAmount, toAmount);
 
 
             var pagedResponse = new PagedResponseModel<TransactionDto>
@@ -102,7 +117,10 @@ namespace PFM.API.Controllers
                 }
             }
             await _transactionRepository.AddTransactions(transactions);
-            return Ok("Import successfully uploaded");
+            return Ok(new
+            {
+                Message = "Import successfully uploaded"
+            });
         }
 
 
@@ -138,7 +156,10 @@ namespace PFM.API.Controllers
 
             await _transactionRepository.Update(transaction);
 
-            return Ok("Transaction successfully categorized.");
+            return Ok(new
+            {
+                Message = "Transaction successfully categorized."
+            });
         }
 
 
@@ -158,7 +179,7 @@ namespace PFM.API.Controllers
             }
 
             var totalAmount = splitTransactionDto.Splits.Sum(x => x.Amount);
-            if(totalAmount != transaction.Amount)
+            if (totalAmount != transaction.Amount)
             {
                 return StatusCode(400, new
                 {
@@ -167,9 +188,9 @@ namespace PFM.API.Controllers
                     StatusCode = 404
                 });
             }
-            
+
             transaction.SplitTransactions.Clear();
-            foreach(var splitTransactionItem in splitTransactionDto.Splits)
+            foreach (var splitTransactionItem in splitTransactionDto.Splits)
             {
                 var category = await _categoryRepository.GetCategoryBycode(splitTransactionItem.CatCode);
                 if (category == null)
@@ -181,7 +202,7 @@ namespace PFM.API.Controllers
                         StatusCode = 404
                     });
                 }
-               
+
                 var splitTransaction = new SplitTransaction
                 {
                     Amount = splitTransactionItem.Amount,
@@ -194,7 +215,62 @@ namespace PFM.API.Controllers
 
             await _transactionRepository.Update(transaction);
 
-            return Ok("Transaction successfully splitted.");
+            return Ok(new
+            {
+                Message = "Transaction successfully splitted."
+            });
+        }
+
+        [HttpPost("auto-categorize")]
+        public async Task<ActionResult> AutoCategorize()
+        {
+            var rulesFromConfig = _configuration.GetSection("AutoCategorizeRules").Get<List<AutoCategorizeRule>>();
+
+            if(rulesFromConfig == null || rulesFromConfig.Count == 0)
+            {
+                return StatusCode(400, new
+                {
+                    Description = "No rules found",
+                    Message = $"There arent any rules in config",
+                    StatusCode = 400
+                });
+            }
+
+            var totalChanged = 0;
+            foreach (var rule in rulesFromConfig)
+            {
+                var category = await _categoryRepository.GetCategoryBycode(rule.CatCode);
+                if (category == null)
+                {
+                    return StatusCode(400, new
+                    {
+                        Description = "Error while getting category",
+                        Message = "Category does not exist",
+                        StatusCode = 400
+                    });
+                }
+
+                try
+                {
+                    var affectedRows = await _transactionRepository.AutoCategorize(rule);
+                    totalChanged += affectedRows;
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(400, new
+                    {
+                        Description = "Error while executing auto categorization query",
+                        Message = $"Incorect predicate: '{rule.Predicate}. The message is: {ex.Message}'",
+                        StatusCode = 400
+                    });
+                }
+
+            }
+
+            return Ok(new
+            {
+                Message = $"Total {totalChanged} transaction successfully autocategorized."
+            });
         }
     }
 }
