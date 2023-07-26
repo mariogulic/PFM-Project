@@ -28,6 +28,7 @@ namespace PFM.API.Controllers
         {
             var categories = await _categoryRepository.GetAll(parentId);
 
+
             return Ok(categories);
         }
 

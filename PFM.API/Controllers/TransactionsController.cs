@@ -260,7 +260,7 @@ namespace PFM.API.Controllers
                     return StatusCode(400, new
                     {
                         Description = "Error while executing auto categorization query",
-                        Message = $"Incorect predicate: '{rule.Predicate}. The message is: {ex.Message}'",
+                        Message = $"Incorect predicate: '{rule.Predicate}'.",
                         StatusCode = 400
                     });
                 }

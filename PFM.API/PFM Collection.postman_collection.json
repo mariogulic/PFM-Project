@@ -1,0 +1,354 @@
+{
+	"info": {
+		"_postman_id": "9fb21274-eb5c-41a1-9926-f2caa9d13cd9",
+		"name": "PFM Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28486396"
+	},
+	"item": [
+		{
+			"name": "Transactions",
+			"item": [
+				{
+					"name": "Transactions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Transaction should have 200 status code and be json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Transactions should have items property\", function () {\r",
+									"    let response = pm.response.json();\r",
+									"    pm.expect(response).to.have.ownProperty(\"items\"); \r",
+									"});\r",
+									"\r",
+									"pm.test(\"Transactions should have more then 1 items\", function () {\r",
+									"    let response = pm.response.json();\r",
+									"    pm.expect(response.items.length).to.be.above(0);\r",
+									"\r",
+									"});\r",
+									"\r",
+									"var schema =  {\r",
+									"  \"type\": \"object\",\r",
+									"  \"properties\": {\r",
+									"    \"items\": {\r",
+									"      \"type\": \"array\"\r",
+									"    },\r",
+									"    \"page\": {\r",
+									"      \"type\": \"number\"\r",
+									"    }\r",
+									"  }\r",
+									"};\r",
+									"\r",
+									"pm.test('Schema is valid', function() {\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7187/api/transactions",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7187",
+							"path": [
+								"api",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "pageNumber",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "pageSize",
+									"value": "20",
+									"disabled": true
+								},
+								{
+									"key": "OrderBy",
+									"value": "asc",
+									"disabled": true
+								},
+								{
+									"key": "Kinds",
+									"value": "wdw",
+									"disabled": true
+								},
+								{
+									"key": "StartDate",
+									"value": "2031-01-01",
+									"disabled": true
+								},
+								{
+									"key": "EndDate",
+									"value": "2041-01-01",
+									"disabled": true
+								},
+								{
+									"key": "fromAmount",
+									"value": "100",
+									"disabled": true
+								},
+								{
+									"key": "toAmount",
+									"value": "200",
+									"disabled": true
+								},
+								{
+									"key": "sortBy",
+									"value": "Amount",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Import CSV file-Transactions",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/C:/Users/bojan/Downloads/transactions.csv"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:7187/api/transactions/import",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7187",
+							"path": [
+								"api",
+								"transactions",
+								"import"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Categorize Transactions",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"catCode\": \"A\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:7187/api/transactions/13375803/categorize",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7187",
+							"path": [
+								"api",
+								"transactions",
+								"13375803",
+								"categorize"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Categorize - with wrong category",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Categorization with wrong category should return 400 code\", function () {\r",
+									"    pm.response.to.have.status(400);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Categorization with wrong category should have error message\", function () {\r",
+									"    let response = pm.response.json();\r",
+									"    pm.expect(response.message).to.be.equal(\"Category does not exist\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"catCode\": \"dasda\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:7187/api/transactions/13375803/categorize",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7187",
+							"path": [
+								"api",
+								"transactions",
+								"13375803",
+								"categorize"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Split Transaction",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"splits\": [\r\n    {\r\n      \"catCode\": \"C\",\r\n      \"amount\": 20\r\n    },\r\n    {\r\n      \"catCode\": \"F\",\r\n      \"amount\": 10\r\n    },\r\n    {\r\n      \"catCode\": \"F\",\r\n      \"amount\": 14.3\r\n    }\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:7187/api/transactions/15122088/split",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7187",
+							"path": [
+								"api",
+								"transactions",
+								"15122088",
+								"split"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Import CSV file-Categories",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/C:/Users/bojan/Downloads/categories.csv"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:7187/api/categories/import",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7187",
+							"path": [
+								"api",
+								"categories",
+								"import"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7187/api/categories?parent-id=B",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7187",
+							"path": [
+								"api",
+								"categories"
+							],
+							"query": [
+								{
+									"key": "parent-id",
+									"value": "B"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SpendingAnalytics",
+			"item": [
+				{
+					"name": "spending-analytics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7187/api/spending-analytics",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7187",
+							"path": [
+								"api",
+								"spending-analytics"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
