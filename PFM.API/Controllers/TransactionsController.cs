@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using PFM.API.Entities;
 using PFM.API.Interfaces;
 using PFM.API.Models;
+using PFM.API.Repositories;
 using PFM.API.Utilities;
 using System.Data;
 using System.Globalization;
@@ -19,14 +20,20 @@ namespace PFM.API.Controllers
         private readonly ITransactionRepository _transactionRepository;
         private readonly IMapper _mapper;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IRuleRepository _ruleRepository;
         private readonly IConfiguration _configuration;
         const int maxTransactionsPageSize = 20;
 
-        public TransactionsController(ITransactionRepository transactionRepository, IMapper mapper, ICategoryRepository categoryRepository, IConfiguration configuration)
+        public TransactionsController(ITransactionRepository transactionRepository, 
+            IMapper mapper,
+            ICategoryRepository categoryRepository,
+            IRuleRepository ruleRepository,
+            IConfiguration configuration)
         {
             _transactionRepository = transactionRepository ?? throw new ArgumentNullException(nameof(transactionRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _categoryRepository = categoryRepository ?? throw new ArgumentNullException(nameof(categoryRepository));
+            _ruleRepository = ruleRepository;
             _configuration = configuration;
         }
 
@@ -224,20 +231,27 @@ namespace PFM.API.Controllers
         [HttpPost("auto-categorize")]
         public async Task<ActionResult> AutoCategorize()
         {
-            var rulesFromConfig = _configuration.GetSection("AutoCategorizeRules").Get<List<AutoCategorizeRule>>();
+            var rules = _configuration.GetSection("AutoCategorizeRules").Get<List<AutoCategorizeRule>>();
 
-            if(rulesFromConfig == null || rulesFromConfig.Count == 0)
+            if(rules == null || rules.Count == 0)
             {
-                return StatusCode(400, new
+                var databseRules = await _ruleRepository.GetAll(null);
+                rules = _mapper.Map<List<AutoCategorizeRule>>(databseRules);
+
+                if(rules.Count == 0)
                 {
-                    Description = "No rules found",
-                    Message = $"There arent any rules in config",
-                    StatusCode = 400
-                });
+                    return StatusCode(400, new
+                    {
+                        Description = "No rules found",
+                        Message = $"There arent any rules in config or in database",
+                        StatusCode = 400
+                    });
+                }
+
             }
 
             var totalChanged = 0;
-            foreach (var rule in rulesFromConfig)
+            foreach (var rule in rules)
             {
                 var category = await _categoryRepository.GetCategoryBycode(rule.CatCode);
                 if (category == null)

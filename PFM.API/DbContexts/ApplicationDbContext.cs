@@ -13,7 +13,7 @@ namespace PFM.API.DbContexts
         public DbSet<Transaction> Transactions { get; set; } = null!;
         public DbSet<Category> Categories { get; set; } = null!;
         public DbSet<SplitTransaction> SplitTransactions { get; set; } = null!;
-
+        public DbSet<Rule> Rules { get; set; } = null!;
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
