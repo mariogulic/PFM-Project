@@ -54,7 +54,10 @@ namespace PFM.API.Controllers
 
             await _ruleRepository.Delete(rule);
 
-            return Ok("Sucessfuly delete rule");
+            return Ok(new
+            {
+               Message = "Sucessfuly deleted rule"
+            });
         }
 
         [HttpPut("{id}")]
@@ -78,7 +81,10 @@ namespace PFM.API.Controllers
 
             await _ruleRepository.UpdateRule(databaseRule);
 
-            return Ok("Sucessfuly updated rule");
+            return Ok(new
+            {
+                Message = "Sucessfuly updated rule"
+            });
         }
     }
 }
