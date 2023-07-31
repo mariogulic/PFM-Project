@@ -1,5 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PFM.API.DbContexts;
 using PFM.API.Entities;
 using PFM.API.Interfaces;
@@ -74,8 +73,8 @@ namespace PFM.API.TransactionRepository
                 case SortByEnum.Kind:
                     collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.Kind) : collection.OrderBy(t => t.Kind);
                     break;
-                case SortByEnum.catCode:
-                    collection = orderBy == OrderByEnum.Desc ? collection.OrderByDescending(t => t.CatCode) : collection.OrderBy(t => t.CatCode);
+                default: 
+                    collection = collection.OrderBy(t => t.Date);
                     break;
             }
 

@@ -1,11 +1,8 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PFM.API.Entities;
 using PFM.API.Interfaces;
 using PFM.API.Models;
-using PFM.API.Utilities;
-using System.Text.Json;
 
 namespace PFM.API.Controllers
 {
@@ -49,14 +46,20 @@ namespace PFM.API.Controllers
             var rule = await _ruleRepository.GetByid(id);
             if (rule == null)
             {
-                return BadRequest(404);
+                return BadRequest(new
+                {
+                    Description = "Problem with rules",
+                    Message = "Rule does not exist.",
+                    StatusCode = 404,
+
+                });
             }
 
             await _ruleRepository.Delete(rule);
 
             return Ok(new
             {
-               Message = "Sucessfuly deleted rule"
+                Message = "Sucessfuly deleted rule"
             });
         }
 
@@ -64,15 +67,25 @@ namespace PFM.API.Controllers
         public async Task<ActionResult<int>> UpdateRule(int id, AutoCategorizeRule rule)
         {
             var databaseRule = await _ruleRepository.GetByid(id);
-            if (rule == null)
+            if (databaseRule == null)
             {
-                return BadRequest(404);
+                return BadRequest(new
+                {
+                    Description = "Problem with rules",
+                    Message = "Rule does not exist.",
+                    StatusCode = 404,
+                });
             }
 
             var category = await _categoryRepository.GetCategoryBycode(rule.CatCode);
-            if(category == null)
+            if (category == null)
             {
-                return BadRequest(404);
+                return BadRequest(new
+                {
+                    Description = "Problem with category",
+                    Message = "Category does not exist.",
+                    StatusCode = 404,
+                });
             }
 
             databaseRule.Title = rule.Title;

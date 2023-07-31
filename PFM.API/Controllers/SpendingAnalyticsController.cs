@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PFM.API.Interfaces;
 using PFM.API.Models;
-using PFM.API.Repositories;
 
 namespace PFM.API.Controllers
 {
