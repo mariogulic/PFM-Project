@@ -212,6 +212,11 @@ namespace PFM.API.TransactionRepository
 
                 if(counter == batchSize)
                 {
+                    var transactionIds = transactions.Select(x => x.Id).ToList();
+                    var existingIds = _context.Transactions.Where(x => transactionIds.Contains(x.Id)).Select(x => x.Id).ToList();
+                    transactions = transactions.Where(x => !existingIds.Contains(x.Id)).ToList();   
+
+
                     await _context.Transactions.AddRangeAsync(transactions);
                     await _context.SaveChangesAsync();
 
@@ -222,6 +227,10 @@ namespace PFM.API.TransactionRepository
 
             if(counter > 0)
             {
+                var transactionIds = transactions.Select(x => x.Id).ToList();
+                var existingIds = _context.Transactions.Where(x => transactionIds.Contains(x.Id)).Select(x => x.Id).ToList();
+                transactions = transactions.Where(x => !existingIds.Contains(x.Id)).ToList();
+
                 await _context.Transactions.AddRangeAsync(transactions);
                 await _context.SaveChangesAsync();
             }

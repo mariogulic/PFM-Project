@@ -37,13 +37,7 @@ namespace PFM.API.Controllers
 
             (IEnumerable<Category> categories, PaginationMetadata paginationMetaData) = await _categoryRepository.GetAll(parentId, pageNumber, pageSize);
 
-            if (!categories.Any())
-            {
-                return NotFound(new 
-                {
-                    Message = "Parent ID does not exist."
-                });
-            }
+         
 
             var pagedResponse = new PagedResponseModel<CategoryDto>
             {

@@ -24,11 +24,11 @@ namespace PFM.API.Repositories
             return await _context.Categories.FirstOrDefaultAsync(x => x.Code == code);
         }
 
-        //public async Task AddCategories(List<Category> categories)
-        //{
-        //    await _context.Categories.AddRangeAsync(categories);
-        //    await _context.SaveChangesAsync();
-        //}
+        public async Task AddCategories(List<Category> categories)
+        {
+            await _context.Categories.AddRangeAsync(categories);
+            await _context.SaveChangesAsync();
+        }
 
         public async Task UpdateCategory(Category existingCategory)
         {
@@ -74,6 +74,11 @@ namespace PFM.API.Repositories
 
                 if (counter == batchSize)
                 {
+                    var categoryCodes = categories.Select(x => x.Code).ToList();
+                    var existingCodes = _context.Categories.Where(x => categoryCodes.Contains(x.Code)).Select(x => x.Code).ToList();
+                    categories = categories.Where(x => !existingCodes.Contains(x.Code)).ToList();
+
+
                     await _context.Categories.AddRangeAsync(categories);
                     await _context.SaveChangesAsync();
 
@@ -83,6 +88,10 @@ namespace PFM.API.Repositories
             }
             if (counter > 0)
             {
+                var categoryCodes = categories.Select(x => x.Code).ToList();
+                var existingCodes = _context.Categories.Where(x => categoryCodes.Contains(x.Code)).Select(x => x.Code).ToList();
+                categories = categories.Where(x => !existingCodes.Contains(x.Code)).ToList();
+
                 await _context.Categories.AddRangeAsync(categories);
                 await _context.SaveChangesAsync();
             }

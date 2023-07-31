@@ -8,7 +8,7 @@ namespace PFM.API.Interfaces
     {
         Task AddCategory(Category categoryForDatabase);
         Task<Category> GetCategoryBycode(string code);
-        //Task AddCategories(List<Category> categories);
+        Task AddCategories(List<Category> categories);
         Task UpdateCategory(Category existingCategory);
         Task<(IEnumerable<Category>, PaginationMetadata)> GetAll(string parentId, int pageNumber , int pageSize );
         Task AddCategoriesInBatch(List<CategoryDto> categories, int batchSize);
