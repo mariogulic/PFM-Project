@@ -45,12 +45,12 @@ namespace PFM.API.Controllers
                 });
             }
 
-            var pagedResponse = new PagedResponseModel<TransactionDto>
+            var pagedResponse = new PagedResponseModel<CategoryDto>
             {
                 PageSize = pageSize,
                 Page = pageNumber,
                 TotalCount = paginationMetaData.TotalItemCount,
-                Items = _mapper.Map<IEnumerable<TransactionDto>>(categories)
+                Items = _mapper.Map<IEnumerable<CategoryDto>>(categories)
             };
             Response.Headers.Add("Pagination",
                JsonSerializer.Serialize(paginationMetaData));
