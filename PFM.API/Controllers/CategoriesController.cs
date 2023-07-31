@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using PFM.API.Entities;
 using PFM.API.Interfaces;
 using PFM.API.Models;
+using PFM.API.Repositories;
 using System.Globalization;
+using System.Text.Json;
 
 namespace PFM.API.Controllers
 {
@@ -15,6 +17,7 @@ namespace PFM.API.Controllers
     {
         private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
+        const int maxTransactionsPageSize = 20;
 
         public CategoriesController(ICategoryRepository categoryRepository, IMapper mapper)
         {
@@ -24,12 +27,34 @@ namespace PFM.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAll([FromQuery(Name = "parent-id")] string? parentId)
+        public async Task<ActionResult<PagedResponseModel<CategoryDto>>> GetAll([FromQuery(Name = "parent-id")] string? parentId, int pageNumber = 1, int pageSize = 10)
         {
-            var categories = await _categoryRepository.GetAll(parentId);
+            if (pageSize > maxTransactionsPageSize)
+            {
+                pageSize = maxTransactionsPageSize;
+            }
 
 
-            return Ok(categories);
+            (IEnumerable<Category> categories, PaginationMetadata paginationMetaData) = await _categoryRepository.GetAll(parentId, pageNumber, pageSize);
+
+            if (!categories.Any())
+            {
+                return NotFound(new 
+                {
+                    Message = "Parent ID does not exist."
+                });
+            }
+
+            var pagedResponse = new PagedResponseModel<TransactionDto>
+            {
+                PageSize = pageSize,
+                Page = pageNumber,
+                TotalCount = paginationMetaData.TotalItemCount,
+                Items = _mapper.Map<IEnumerable<TransactionDto>>(categories)
+            };
+            Response.Headers.Add("Pagination",
+               JsonSerializer.Serialize(paginationMetaData));
+            return Ok(pagedResponse);
         }
 
 
@@ -49,29 +74,7 @@ namespace PFM.API.Controllers
             using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
             var records = csv.GetRecords<CategoryDto>().ToList();
 
-            var categories = new List<Category>();
-            foreach (var record in records)
-            {
-                var existingCategory = await _categoryRepository.GetCategoryBycode(record.Code);
-                if (existingCategory == null)
-                {
-                    var categoryForDatabase = new Category
-                    {
-                        Code = record.Code,
-                        ParentCode = record.ParentCode,
-                        Name = record.Name
-
-                    };
-                    categories.Add(categoryForDatabase);
-                }
-                else
-                {
-                    existingCategory.Name = record.Name;
-                    await _categoryRepository.UpdateCategory(existingCategory);
-                }
-
-            }
-            await _categoryRepository.AddCategories(categories);
+            await _categoryRepository.AddCategoriesInBatch(records , 100);
             return Ok(new
             {
                 Message = "Import successfully uploaded"

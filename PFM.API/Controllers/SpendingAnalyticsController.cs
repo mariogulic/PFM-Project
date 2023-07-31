@@ -41,7 +41,7 @@ namespace PFM.API.Controllers
 
 
             var spendingAnalyticItems = await _transactionRepository.GetSpendingAnalytics(catcode, endDate, startDate, direction);
-
+            
             var response = new SpendingAnalyticsDto
             {
                 Groups = _mapper.Map<List<SpendingAnalyticItemsDto>>(spendingAnalyticItems)

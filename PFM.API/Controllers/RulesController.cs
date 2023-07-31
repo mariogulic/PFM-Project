@@ -37,7 +37,10 @@ namespace PFM.API.Controllers
 
             await _ruleRepository.AddRule(databaseRule);
 
-            return Ok(databaseRule.Id);
+            return Ok(new
+            {
+               Message = $"Sucesfully instered new rule,with ID: {databaseRule.Id}"  
+            });
         }
 
         [HttpDelete("{id}")]

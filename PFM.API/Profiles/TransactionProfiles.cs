@@ -12,6 +12,7 @@ namespace PFM.API.Profiles
             CreateMap<Entities.SplitTransaction, Models.SplitTransactionItemDto>();
             CreateMap<Entities.Rule, Models.AutoCategorizeRule>();
             CreateMap<Models.AutoCategorizeRule, Entities.Rule>();
+            CreateMap<Entities.Category, Models.TransactionDto>();
         }
     }
 }

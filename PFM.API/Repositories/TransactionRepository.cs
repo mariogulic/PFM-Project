@@ -175,6 +175,8 @@ namespace PFM.API.TransactionRepository
 
         public async Task<bool> CheckCatcodeExistsAsync(string catcode)
         {
+
+
             return await _context.Categories.AnyAsync(c => c.Code == catcode);
         }
 
@@ -184,6 +186,46 @@ namespace PFM.API.TransactionRepository
                                                                     SET CatCode = '{rule.CatCode}' 
                                                                     WHERE CatCode is NULL AND {rule.Predicate}");
             return rowsModified;
+        }
+
+        public async Task AddTransactionsInBatch(List<TransactionDto> records, int batchSize)
+        {
+            var transactions = new List<Transaction>();
+            
+            var counter = 0;
+            foreach (var record  in records) 
+            {
+                var transactionForDatase = new Transaction
+                {
+                    Id = record.Id,
+                    BeneficairyName = record.BeneficairyName,
+                    Date = record.Date,
+                    Direction = record.Direction,
+                    Amount = record.Amount,
+                    Description = record.Description,
+                    Currency = record.Currency,
+                    Mcc = record.Mcc,
+                    Kind = record.Kind,
+                };
+                transactions.Add(transactionForDatase);
+                counter++;
+
+                if(counter == batchSize)
+                {
+                    await _context.Transactions.AddRangeAsync(transactions);
+                    await _context.SaveChangesAsync();
+
+                    transactions = new List<Transaction>();
+                    counter = 0;
+                }
+            }
+
+            if(counter > 0)
+            {
+                await _context.Transactions.AddRangeAsync(transactions);
+                await _context.SaveChangesAsync();
+            }
+            return;
         }
     }
 }

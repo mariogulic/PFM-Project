@@ -99,28 +99,8 @@ namespace PFM.API.Controllers
             using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
             var records = csv.GetRecords<TransactionDto>().ToList();
 
-            var transactions = new List<Transaction>();
-            foreach (var record in records)
-            {
-                var existingTransaction = await _transactionRepository.GetTransactionById(record.Id);
-                if (existingTransaction == null)
-                {
-                    var transactionForDatase = new Transaction
-                    {
-                        Id = record.Id,
-                        BeneficairyName = record.BeneficairyName,
-                        Date = record.Date,
-                        Direction = record.Direction,
-                        Amount = record.Amount,
-                        Description = record.Description,
-                        Currency = record.Currency,
-                        Mcc = record.Mcc,
-                        Kind = record.Kind
-                    };
-                    transactions.Add(transactionForDatase);
-                }
-            }
-            await _transactionRepository.AddTransactions(transactions);
+            
+            await _transactionRepository.AddTransactionsInBatch(records , 200);
             return Ok(new
             {
                 Message = "Import successfully uploaded"

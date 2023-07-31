@@ -1,4 +1,6 @@
 ﻿using PFM.API.Entities;
+using PFM.API.Models;
+using PFM.API.Repositories;
 
 namespace PFM.API.Interfaces
 {
@@ -6,9 +8,10 @@ namespace PFM.API.Interfaces
     {
         Task AddCategory(Category categoryForDatabase);
         Task<Category> GetCategoryBycode(string code);
-        Task AddCategories(List<Category> categories);
+        //Task AddCategories(List<Category> categories);
         Task UpdateCategory(Category existingCategory);
-        Task<IEnumerable<Category>> GetAll(string parentId);
+        Task<(IEnumerable<Category>, PaginationMetadata)> GetAll(string parentId, int pageNumber , int pageSize );
+        Task AddCategoriesInBatch(List<CategoryDto> categories, int batchSize);
 
     }
 }

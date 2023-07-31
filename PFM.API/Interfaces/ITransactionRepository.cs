@@ -17,5 +17,6 @@ namespace PFM.API.Interfaces
         Task<List<SpendingAnalyticItem>> GetSpendingAnalytics(string catcode, DateTime? startDate, DateTime? endDate, DirectionEnum? direction);
         Task<bool> CheckCatcodeExistsAsync(string catcode);
         Task<int> AutoCategorize(AutoCategorizeRule rule);
+        Task AddTransactionsInBatch(List<TransactionDto> transactions , int batchSize);
     }
 }
