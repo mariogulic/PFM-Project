@@ -92,7 +92,6 @@ namespace PFM.API.Controllers
                     Message = "Please enter valid file",
                     StatusCode = 400,
                 });
-
             }
 
             using var reader = new StreamReader(file.OpenReadStream());
